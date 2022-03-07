@@ -1,0 +1,18 @@
+Simulador da Enigma
+http://enigmaco.de/enigma/enigma.html?fbclid=IwAR0t6E_rWylTMnSdqhnyclCWZaSEECDyrWlaTxhTB-9z0PK3p2QfhHZnru8
+
+Links em complemento ao Video2 Cifras Históricas
+
+I - Funcionamento da cifra de Vigenere
+https://www.youtube.com/watch?v=SkJcmCaHqS0
+
+II - Quebrando a cifra de Vigenere
+https://www.youtube.com/watch?v=P4z3jAOzT9I&fbclid=IwAR0Aj7nSiyUmdf1XaRI7-jYcsumG_uwOpJmbNQrwhoSPj08_8rinaOGRHuk
+
+III - A Máquina Enigma
+O link abaixo lista uma série de recursos sobre a máquina Enigma, usada pelos alemães na Segunda Guerra, e quebrada pelos ingleses.
+https://www.cryptomuseum.com/crypto/enigma/
+
+IV - A Máquina Enigma - 2
+O link abaixo tráz mais informações sobre a Enigma
+https://observablehq.com/@tmcw/enigma-machine
