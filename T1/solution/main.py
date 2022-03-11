@@ -44,66 +44,93 @@ def vigenere(raw_text, raw_key, operation):
 
 
 # Recovers a Vigenere's cypher key using frequency analysis
-def recover(raw_text, max_key_len, language='english'):
+def recover(raw_text, max_key_length, language='english'):
+    # Trims the text from non-cyphered characters
     slim = re.sub('[^a-zA-Z]+', '', raw_text).upper()
-    key_len = estimate_key_length(slim, max_key_len)
+
+    # Estimates key length
+    key_len = estimate_key_length(slim, max_key_length)
+
+    # Generates co-sets of the text characters
     coset = cosets(slim, key_len)
+
     shifted_coset = []
     key = ""
 
+    # Shift the co-sets to find each key character code
     for value in coset:
         shifted_coset.append(coset_shift(value, language))
+
+    # Append each character back into the key string
     for value in shifted_coset:
         key += chr(ord('A') + value)
 
+    # Return the key and deciphered message
     message = vigenere(raw_text, key, 'decrypt')
     return key, message
 
 
-# Give an estimate of a potential key length of a cipher text. The algorithm
-# works by finding which coset length has the greatest index of coincidence.
-def estimate_key_length(cipher_text, max_len):
-    index_array = [0] * max_len
-    indices = []
-    cis = []
+# Returns the estimated key length for a given text
+# based on which co-set length displays the highest index of coincidence
+def estimate_key_length(cypher_text, max_length):
+    index_array = [0] * max_length
+    coincidence_indexes = []
+    total_index = []
 
+    # Generates the co-set of cypher character for each possible key length
+    # until the max defined length (max_length)
     for index, value in enumerate(index_array):
-        distributed_array = cosets(cipher_text, index + 1)
+        distributed_array = cosets(cypher_text, index + 1)
+
+        # Generates a list of coincidence indexes for each co-set
         for dist_index in distributed_array:
-            cis.append(coincidence_index(dist_index))
+            coincidence_indexes.append(coincidence_index(dist_index))
 
-        indices.append(functools.reduce(lambda a, b: a + b, cis, 0) / len(cis))
+        # Reduces the list of coincidence indexes summing its values
+        total_index.append(
+            functools.reduce(lambda acc, ele: acc + ele, coincidence_indexes, 0) / len(coincidence_indexes)
+        )
 
-    return indices.index(max(indices)) + 1
+    # Returns the highest index
+    return total_index.index(max(total_index)) + 1
 
 
-# Split the ciperhtext into a given number of groups with the letters
+# Split the cypher text into a given number of groups with the letters
 # distributed uniformly in a sequential and round-robin fashion
 def cosets(text, num):
+    # Matrix of sets
     sets = [[] for _ in range(num)]
     chars = list(text)
 
+    # Sequential distribution
     for index, value in enumerate(chars):
         sets[index % num].append(value)
 
     return sets
 
 
-# Index of coincidence for a coset
+# Returns the index of coincidence for a coset
+# Reference: https://en.wikipedia.org/wiki/Index_of_coincidence
 def coincidence_index(coset):
+    # Obtains the frequency count for each character
     fc = frequency_count(coset)
     elements = []
+
+    # Distribute frequency
     for value in fc:
         elements.append(value * (value - 1))
 
-    element_sum = functools.reduce(lambda acc, x: acc + x, elements)
+    # Sums the incidence
+    element_sum = functools.reduce(lambda acc, ele: acc + ele, elements)
 
     return element_sum / (len(coset) * (len(coset) - 1))
 
 
-# Frequency count of a coset
+# Frequency count of a co-set
 def frequency_count(coset):
     counts = [0] * 26
+
+    # Increment counter for each letter in the co-set
     for letter in coset:
         counts[ord(letter) - ord('A')] += 1
 
@@ -111,69 +138,18 @@ def frequency_count(coset):
 
 
 # Computes the shift of a coset by finding the smallest chi-squared test
-# against the actual frequency of letters in the english alphabet.
+# against the actual frequency of letters in the alphabet.
 # Reference: https://pages.mtu.edu/~shene/NSF-4/Tutorial/VIG/Vig-Recover.html
 def coset_shift(coset, language):
+    freq = []
     if language == 'english':
-        # English frequency
-        freq = [
-            0.08167,
-            0.01492,
-            0.02782,
-            0.04253,
-            0.12702,
-            0.02228,
-            0.02015,
-            0.06094,
-            0.06996,
-            0.00153,
-            0.00772,
-            0.04025,
-            0.02406,
-            0.06749,
-            0.07507,
-            0.01929,
-            0.00095,
-            0.05987,
-            0.06327,
-            0.09056,
-            0.02758,
-            0.00978,
-            0.0236,
-            0.0015,
-            0.01974,
-            0.00074
-        ]
+        # English letter frequency
+        for line in open("frequencies/english.txt", "r").readlines():
+            freq.append(float(line))
     else:
-        # Portuguese frequency
-        freq = [
-            0.1463,
-            0.0104,
-            0.0388,
-            0.0499,
-            0.1257,
-            0.0102,
-            0.0130,
-            0.0128,
-            0.0618,
-            0.0040,
-            0.0002,
-            0.0278,
-            0.0474,
-            0.0505,
-            0.1073,
-            0.0252,
-            0.0120,
-            0.0653,
-            0.0781,
-            0.0434,
-            0.0463,
-            0.0167,
-            0.0001,
-            0.0021,
-            0.0001,
-            0.0047
-        ]
+        # Portuguese letter frequency
+        for line in open("frequencies/portuguese.txt", "r").readlines():
+            freq.append(float(line))
 
     index_array = [0] * 26
 
@@ -183,6 +159,8 @@ def coset_shift(coset, language):
         shift_codes = []
         fc_list = []
         shift = []
+
+        # Shift elements by each letter
         for element in coset:
             shift_array.append(ord(element) - index)
         for element in shift_array:
@@ -192,17 +170,24 @@ def coset_shift(coset, language):
 
         fc = frequency_count(shift)
 
+        # Chi-square test list
         for shift_index, element in enumerate(fc):
             fc_list.append((element / len(coset) - freq[shift_index]) ** 2 / freq[shift_index])
 
+        # Sum test list
         chi.append(functools.reduce(lambda acc, x: acc + x, fc_list))
 
+    # Return index of lower value (chi-squared test)
     return chi.index(min(chi))
 
 
+# Main function, displays menu, captures user input and return the results
 if __name__ == '__main__':
     user_input = 0
+
+    # Main loop
     while not user_input:
+        # Main menu
         print('Escolha uma operação')
         print('1 - Encryptar')
         print('2 - Decryptar')
@@ -212,6 +197,7 @@ if __name__ == '__main__':
         print('')
 
         match user_input:
+            # Encrypt
             case '1':
                 plain_text = input('Digite o texto a ser encriptado:')
                 plain_key = input('Digite a chave a ser utilizada:')
@@ -220,6 +206,7 @@ if __name__ == '__main__':
                 print(f'{result}')
                 print('')
                 user_input = 0
+            # Decrypt
             case '2':
                 plain_text = input('Digite o texto a ser decriptado:')
                 plain_key = input('Digite a chave a ser utilizada:')
@@ -228,6 +215,7 @@ if __name__ == '__main__':
                 print(f'{result}')
                 print('')
                 user_input = 0
+            # Recover key
             case '3':
                 plain_text = input('Digite o texto a ser analisado:')
                 plain_key_length = int(input('Digite o tamanho máximo da chave:'))
@@ -240,8 +228,10 @@ if __name__ == '__main__':
                 print(f'{result}')
                 print('')
                 user_input = 0
+            # Exit program
             case '4':
                 exit(0)
+            # Default (invalid option)
             case _:
                 user_input = 0
                 print('')
