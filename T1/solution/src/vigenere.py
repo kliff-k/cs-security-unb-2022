@@ -144,11 +144,11 @@ def coset_shift(coset, language):
     freq = []
     if language == 'english':
         # English letter frequency
-        for line in open("frequencies/english.txt", "r").readlines():
+        for line in open("../frequencies/english.txt", "r").readlines():
             freq.append(float(line))
     else:
         # Portuguese letter frequency
-        for line in open("frequencies/portuguese.txt", "r").readlines():
+        for line in open("../frequencies/portuguese.txt", "r").readlines():
             freq.append(float(line))
 
     index_array = [0] * 26
