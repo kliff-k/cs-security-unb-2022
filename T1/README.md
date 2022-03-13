@@ -1,28 +1,27 @@
-# Cifra de Vigenere
-___
+# Cifra de Vigenère
 
-###### Hector Rocha Margittay - 190014172
-###### Murilo da Silva Mascarenhas de Moraes - 160139180
+###### Hector Rocha Margittay - 19/0014172
+###### Murilo da Silva Mascarenhas de Moraes - 16/0139180
 
 ## Cifra
 
 Para cifrar/decifrar mensagens, primeiro nos limitamos a caracteres em caixa alta (upper case).
-Após transformar o texto (raw_text) e chave (raw_key) em caixa alta, 
-utilizamos um laço que percorre os caracteres do texto (text) verificando se o caractere é ascii afabético.
+Após transformar o texto `raw_text` e chave `raw_key` em caixa alta, 
+utilizamos um laço que percorre os caracteres do texto `text` verificando se o caractere é ascii alfabético.
 
-Caso não seja, adicionamos ele sem tratamento na mensagem de/codificada e incrementamos o contador
-de caracteres ignorados (skipped_characters) para não interferir na posição das letras cifradas subsequentes.
+Caso não seja, adicionamos ele sem tratamento na mensagem (de)codificada e incrementamos o contador
+de caracteres ignorados `skipped_characters` para não interferir na posição das letras cifradas subsequentes.
 
-Obtemos o valor ascii do caractere da chave (key) adequada para a posição atual (ord()) com base no seu índice - a quantidade de caracteres ignorados.
+Obtemos o valor ascii do caractere da chave `key_character` adequada para a posição atual (`ord(...)`) com base no seu índice - a quantidade de caracteres ignorados.
 Utilizando o módulo do tamanho da chave, percorremos todas as posições da chave em ródizio, de forma a simular a repetição
 da chave até o tamanho da mensagem.
 
 O resultado é somado ao valor ascii da letra atual da mensagem em caso de cifração, e subtraído (mais o tamanho do alfabeto) em caso de decifração.
 
-Por fim, o módulo desde valor com o tamanho do alfabeto é somado à posição ascii do início da tabela ascii (ord(A)) a fim de
-obter a nova posição da matriz de Vigenere, sem ter que construí-la manualmente e referencia-la.
+Por fim, o módulo deste valor com o tamanho do alfabeto é somado à posição ascii do início da tabela ascii (`ord(A)`) a fim de
+obter a nova posição da matriz de Vigenère, sem ter que construí-la manualmente e referencia-la.
 
-O valor ascii é retornado para o seu caractere equivalente (chr()) e concatenado à mensagem.
+O valor ascii é retornado para o seu caractere equivalente (`chr(...)`) e concatenado à mensagem.
 
 
 ```python
@@ -55,8 +54,8 @@ def vigenere(raw_text, raw_key, operation):
 
 O ataque utiliza análise de frequência para recuperar a chave com base em um texto cifrado.
 Um tamanho máximo da chave é necessário para limitar as tentativas, assim como a linguagem esperada da mensagem
-já que a frenquência das letras utilizadas são diferentes em cada lingua. Assumimos inglês como padrão,
-português pode ser passado como parâmetro.
+já que a frenquência das letras utilizadas são diferentes em cada língua. Assumimos inglês como padrão, porém 
+português também pode ser passado como parâmetro.
 
 Novamente reduzimos a mensagem a somente caracteres em caixa alta, e removemos os caracteres não cifrados.
 
