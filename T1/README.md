@@ -12,7 +12,7 @@ utilizamos um laço que percorre os caracteres do texto `text` verificando se o 
 Caso não seja, adicionamos ele sem tratamento na mensagem (de)codificada e incrementamos o contador
 de caracteres ignorados `skipped_characters` para não interferir na posição das letras cifradas subsequentes.
 
-Obtemos o valor ascii do caractere da chave `key_character` adequada para a posição atual (`ord(...)`) com base no seu índice - a quantidade de caracteres ignorados.
+Obtemos o valor ascii do caractere da chave `key_character` adequada para a posição atual (`ord(...)`) com base no seu índice menos a quantidade de caracteres ignorados.
 Utilizando o módulo do tamanho da chave, percorremos todas as posições da chave em ródizio, de forma a simular a repetição
 da chave até o tamanho da mensagem.
 
@@ -64,12 +64,12 @@ letras presentes no texto, de tamanho 1 até o máximo definido pelo usuário. O
 para encontrar seu índice de coincidência[^1]. Selecionamos o co-conjunto com o maior índice como estimativa
 do tamanho da chave.
 
-Ao se obter o provável tamanho da chave encontrado, geramos co-conjuntos com este tamanho das letras presentes na mensagem.
-Estes co-conjuntos são então deslocados até encontramos o menor valor do teste chi²[^2] contra as frequências das
+Ao se obter o provável tamanho da chave, geramos co-conjuntos das letras presentes na mensagem com este tamanho .
+Estes co-conjuntos são então deslocados até encontramos o menor valor do teste χ² (chi-quadrado)[^2] contra as frequências das
 letras do alfabeto/linguagem.
 
 Percorremos então a lista de cada índice obtido pelo teste, retornando seu valor para sua representação ascii,
-recuperando (possivelmente) assim a chave utilizada.
+recuperando (possivelmente) a chave utilizada.
 
 
 ```python
@@ -90,6 +90,14 @@ def recover(raw_text, max_key_length, language='english'):
     return key, message
 ```
 
+## Considerações
 
-[^1]: https://en.wikipedia.org/wiki/Index_of_coincidence
+* Não implementamos solução para UTF-8, logo, caracteres não-ascii são ignorados.
+* Para simplificar o tratamento do input do usuário, as mensagens não suportam quebras de linha.
+* Não tentamos descobrir qual é a lingua da mensagem, deixando o usuário informar ou descobrir na tentativa e erro.
+  * Implementar uma lógica não desviaria muito do trabalho feito, já que poderiamos utilizar o texte χ² em todas as listas de frequências disponíveis ao programa (inglês/português) e selecionar o resultado que melhor pontua.
+* O foco do projeto era não construir vetores estáticos (tanto para o comprimento da chave quanto a matriz de Vigenère), e automatizar o deslocamento dos co-conjuntos para não necessitar de participação do usuário (inspirado pela implementação de Nick Babcock)[^3]
+
+[^1]: https://pt.wikipedia.org/wiki/Index_of_coincidence
 [^2]: https://pages.mtu.edu/~shene/NSF-4/Tutorial/VIG/Vig-Recover.html
+[^3]: https://vigenere.nickb.dev/
