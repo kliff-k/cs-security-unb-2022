@@ -1,20 +1,9 @@
 # Imports
-from aes_keys import make_asymmetric_key_file
-from rsa_keys import make_symmetric_key_files
-import aes_cipher
-import rsa_cipher
 import base64
-import hashlib
+from local_aes import aes_process, aes_generate_symmetric_key_file
+from local_rsa import rsa_encrypt_oaep, rsa_decrypt_oaep, rsa_sign, rsa_check_sign, rsa_generate_asymmetric_key_files
 
-# Public key
-# AES_CTR_session_key(message)
-# RSA_private_key(session_key)
-# RSA_private_key(hash(message))
-
-# TODO: Use f-strings everywhere
-# TODO: Use with open(filename) as f: everywhere
-
-# Main function, displays menu, captures user input and return the results
+# Main function, captures user input and return the results
 if __name__ == '__main__':
 
     # Start comunication session
@@ -23,7 +12,7 @@ if __name__ == '__main__':
 
     # Generate RSA keys
     print('Gerando chaves assimétricas (RSA)')
-    rsa_keys = make_symmetric_key_files('rsa', 1024)
+    rsa_keys = rsa_generate_asymmetric_key_files('rsa', 1024)
 
     print("Chaves geradas\n")
     input()
@@ -41,14 +30,14 @@ if __name__ == '__main__':
 
     # Generate AES keys
     print("Arquivo recebido, gerando chave simétrica (AES)\n")
-    aes_key = make_asymmetric_key_file('aes', 32)
+    aes_key = aes_generate_symmetric_key_file('aes', 32)
 
     print("Chave geradas\n")
     input()
 
     # Cipher session key (RSA)
     print("Cifrando chave de simétrica de sessão (RSA)\n")
-    rsa_ciphered_session_key = rsa_cipher.encrypt_oaep(aes_key.encode(), './messages/public_key_payload.txt', True)
+    rsa_ciphered_session_key = rsa_encrypt_oaep(aes_key.encode(), './messages/public_key_payload.txt', True)
 
     print("Chave cifrada\n")
     input()
@@ -66,26 +55,22 @@ if __name__ == '__main__':
     print("Chave recebida, decifrando conteúdo (RSA)\n")
     with open('./messages/session_key_payload.txt', 'rb') as f:
         rsa_ciphered_payload = base64.decodebytes(f.read())
-    rsa_deciphered_session_key = rsa_cipher.decrypt_oaep(rsa_ciphered_payload, './keys/rsa_private.txt')
+    rsa_deciphered_session_key = rsa_decrypt_oaep(rsa_ciphered_payload, './keys/rsa_private.txt')
 
     print("Chave decifrada\n")
     input()
 
+    # Capture user message
     message = input('Digite a mensagem a ser enviada:')
     print('')
 
-    # Generate message hash
-    print("Calculando hash da mensagem (SHA3 512)")
-    message_hash = int.from_bytes(hashlib.new("sha3_512", message.encode()).digest(), byteorder='big')
-
-    # Cipher message hash (RSA)
+    # Generate signature
     print("Gerando assinatura (RSA)")
-    rsa_message_signature = rsa_cipher.sign(message_hash, './keys/rsa_private.txt')
+    rsa_message_signature = rsa_sign(message, './keys/rsa_private.txt')
 
     # Cipher message (AES)
     print("Cifrando mensagem (AES CTR)")
-    aes = aes_cipher.AESModeOfOperationCTR(rsa_deciphered_session_key)
-    aes_ciphered_message = aes.process(message)
+    aes_ciphered_message = aes_process(message.encode(), rsa_deciphered_session_key)
 
     # Build payload
     payload = "$|$".encode().join([aes_ciphered_message, str(rsa_message_signature).encode()])
@@ -108,20 +93,14 @@ if __name__ == '__main__':
 
     (aes_ciphered_payload, rsa_payload_signature) = payload
 
-    aes = aes_cipher.AESModeOfOperationCTR(aes_key.encode())
-    aes_deciphered_message = aes.process(aes_ciphered_payload)
+    aes_deciphered_message = aes_process(aes_ciphered_payload, aes_key.encode())
 
     print(f"Mensagem decifrada:\n{aes_deciphered_message.decode()}")
     input()
 
-    # Generate message hash
-    print("Calculando hash da mensagem (SHA3 512)")
-    message_hash = int.from_bytes(hashlib.new("sha3_512", aes_deciphered_message).digest(), byteorder='big')
-    check_payload_signature = rsa_cipher.check_sign(int(rsa_payload_signature), './keys/rsa_public.txt')
-
+    # Validade signature
     print("Verificando assinatura")
-
-    if message_hash == check_payload_signature:
+    if rsa_check_sign(int(rsa_payload_signature), aes_deciphered_message, './keys/rsa_public.txt'):
         print("Assinatura válida")
     else:
         print("Assinatura inválida")
