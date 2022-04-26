@@ -43,19 +43,16 @@ def aes_generate_symmetric_key_file(name: str, key_size: int) -> str:
     # Shuffles the resultant password
     random.shuffle(password)
 
-    # Create keys directory if it does not exist
-    os.makedirs(os.path.dirname('./keys'), exist_ok=True)
-
     # Converts the list to string and save to file
-    with open('./keys/%s_session.txt' % name, 'w') as f:
-        f.write('%s' % "".join(password))
+    with open(f'./output/keys/{name}_session.txt', 'w') as f:
+        f.write("".join(password))
 
     # Returns password as string
     return "".join(password)
 
 
 # Since AES is symmetric, the same process is used to encrypt / decrypt messages
-def aes_process(plaintext, key):
+def aes_process(plaintext: bytes, key: bytes) -> bytes:
     # The key length is important here
     if len(key) not in (16, 24, 32):
         raise ValueError('Invalid key size')
