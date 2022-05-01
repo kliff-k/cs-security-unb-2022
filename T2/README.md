@@ -1,4 +1,4 @@
-# Comunicação por cryptosistema híbrido
+# Comunicação por cryptossistema híbrido
 
 ###### Hector Rocha Margittay - 19/0014172
 ###### Murilo da Silva Mascarenhas de Moraes - 16/0139180
@@ -7,17 +7,17 @@
 
 ### Comunicação
 
-O sistema foi estruturado como uma pequena demonstração de comunicação entre dois participantes (remetente e destinatário) utilizando um cryptosistema híbrido.
-RSA será utilizado para o envio seguro de uma chave de sessão (AES) que será utilizada para comunicações subsequentes.
+O sistema foi estruturado como uma pequena demonstração de comunicação entre dois participantes (remetente e destinatário) utilizando um cryptossistema híbrido.
+Será utilizado RSA (Rivest-Shamir-Adleman) para o envio seguro de uma chave de sessão no padrão AES (Advanced Encryption Standard) que será utilizada para comunicações subsequentes.
 
 Para simular a comunicação sem ter que executar diversos binários, todas as mensagens serão "enviadas" por arquivo.
 Cada etapa está contida em uma função própria para que nenhum resultado seja utilizado fora do seu escopo, garantindo que cada mensagem seja devidamente estruturada e interpretada.
 
 #### Etapa 1:
 
-Após capturar a mensagem que será cifrada e eventualmente enviada para o usuário em etapa futura, geramos o par de chaves publica/privada.
-Para este fim, geramos 2 números pseudo aleatórios de um tamanho mínimo (1024 bits).
-Checamos a primalidade destes números primeiramente com uma divisão por primos pequenos, e depois seguimos com o algorítimo de Miller-Rabin[^1].
+Após capturar a mensagem que será cifrada e eventualmente enviada para o usuário em etapa futura, geramos o par de chaves pública/privada.
+Para este fim, geramos 2 números pseudo-aleatórios de um tamanho mínimo (1024 bits).
+Checamos a primalidade destes números primeiramente com uma divisão por primos pequenos, e depois seguimos com o algorítmo de Miller-Rabin[^1].
 
 ```python
 # Checks if provided number is prime using Rabin-Miller Algorithm
@@ -48,9 +48,9 @@ def rabin_miller(num: int) -> bool:
         return True
 ```
 
-Em caso de falha, o processo é repetido até o par de primos `p,q` for encontrado.
-`n` é então definido como o produto de `p,q`, 
-`e` por meio de geração aleatória até encontramos um primo relativo a `p,q`,
+Em caso de falha, o processo é repetido até o par de primos `(p, q)` for encontrado.
+`n` é então definido como o produto de `(p, q)`, 
+`e` por meio de geração aleatória até encontramos um primo relativo a `(p, q)`,
  por fim `d` é composto do inverso multiplicativo modular entre `e, (p - 1) * (q - 1)`
 
 ```python
@@ -70,8 +70,8 @@ def find_mod_inverse(a: int, m: int) -> int | None:
     return u1 % m
 ```
 
-As chaves são estruturadas como `{tamanhoDaChave},{n},{e_ou_d}` e salvas na pasta `./keys/`.
-"Enviamos" a chave pública, codificando-a em base64 no arquivo `public_key_payload.txt` dentro da pasta `/messages/`.
+As chaves são estruturadas como `{tamanhoDaChave},{n},{e_ou_d}` e salvas na pasta `/keys`.
+"Enviamos" a chave pública, codificando-a em base64 no arquivo `public_key_payload.txt` dentro da pasta `/messages`.
 
 #### Etapa 2:
 
@@ -91,7 +91,7 @@ Geramos uma chave de sessão de 32 caracteres para ser utilizada na comunicaçã
 ```
 
 Encriptamos esta chave (`session_key`) usando a chave pública enviada previamente da forma `mensagem^e mod n`.
-OAEP[^2] (optimal asymmetric encryption padding) é utilizado na mensagem antes da cifração.
+OAEP[^2] (Optimal Asymmetric Encryption Padding) é utilizado na mensagem antes da cifração.
 
 ```python
 def oaep_encode(message: bytes, key_length: int) -> bytes:
@@ -155,7 +155,7 @@ O resultado é "enviado" para o destinatário original, codificado em base64 (`m
 
 Finalmente, o payload é decodificado usando utilizando o mesmo método AES, já que ele é simétrico.
 
-Separando a assinatura da mensagem original, podemos encripta-la utilizando a chave pública, e comparar com o hash da mensagem calculado localmente.
+Separando a assinatura da mensagem original, podemos encriptá-la utilizando a chave pública, e comparar com o hash da mensagem calculado localmente.
 
 ```python
 # Checks signature (encrypts with public key)
@@ -166,7 +166,7 @@ def rsa_check_sign(signature: int, message: bytes, key_name: str) -> bool:
     return message_hash == encrypt(signature, public_key)
 ```
 
-Caso sejam iguais, a assinatura é genuina.
+Caso sejam iguais, a assinatura é genuína.
 
 [^1]: http://inventwithpython.com/hacking/chapter24.html
 [^2]: https://gist.github.com/ppoffice/e10e0a418d5dafdd5efe9495e962d3d2
